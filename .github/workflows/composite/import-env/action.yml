@@ -1,0 +1,99 @@
+# REFERENCES:
+# Github Output Variables: https://docs.github.com/en/actions/creating-actions/creating-a-composite-action#creating-an-action-metadata-file
+
+name: Import environment variables from a file
+
+inputs:
+  var_common_file_path:
+    description: Common environment variables file path
+    require: true
+    type: string
+  var_env_file_path:
+    description: Environment specific variables file path
+    require: true
+    type: string
+  dab_name:
+    description: Databricks asset bundle name
+    require: true
+    type: string
+  dab_source_project:
+    description: DAB source project name
+    require: true
+    type: string
+  environment_code:
+    description: Environment code e.g. (dev, qa, prod)
+    required: true
+    type: string
+  environment_instance:
+    description: Environment instance e.g. (01, 02, 03)
+    required: true
+    type: string
+
+
+outputs:
+  EDP_ALL_VARS:
+    value: ${{ steps.import-env.outputs.EDP_ALL_VARS }}  # Expose as job output
+
+#   # OUTPUT THE ONES WHICH ARE REQUIRED FOR PASSING OUTPUTS TO ANOTHER JOB
+#   EDP_DAB_NAME:
+#     value: ${{ steps.import-env.outputs.EDP_DAB_NAME }}
+#   EDP_DAB_WORKING_DIRECTORY:
+#     value: ${{ steps.import-env.outputs.EDP_DAB_WORKING_DIRECTORY }}
+#   EDP_WORKSPACE_SRC_DIRECTORY:
+#     value: ${{ steps.import-env.outputs.EDP_WORKSPACE_SRC_DIRECTORY }}
+#   EDP_DAB_SOURCE_PROJECT:
+#     value: ${{ steps.import-env.outputs.EDP_DAB_SOURCE_PROJECT }}
+#   EDP_DATABRICKS_STORAGE_CREDENTIAL_NAME:
+#     value: ${{ steps.import-env.outputs.EDP_DATABRICKS_STORAGE_CREDENTIAL_NAME }}
+#   EDP_STORAGE_ACCOUNT_NAME:
+#     value: ${{ steps.import-env.outputs.EDP_STORAGE_ACCOUNT_NAME }}
+#   EDP_STORAGE_ACCOUNT_RESOURCE_GROUP_NAME:
+#     value: ${{ steps.import-env.outputs.EDP_STORAGE_ACCOUNT_RESOURCE_GROUP_NAME }}
+#   EDP_STORAGE_CONTENT_FILE_PATH:
+#     value: ${{ steps.import-env.outputs.EDP_STORAGE_CONTENT_FILE_PATH }}
+    
+runs:
+  using: composite
+  steps:
+    - name: Import environment
+      id: import-env
+      shell: bash
+      run: |
+            env_files=("${{ inputs.var_common_file_path }}" "${{ inputs.var_env_file_path }}")
+
+            output_file=$(mktemp)  # Temporary file for JSON
+            echo "{}" > "$output_file"  # Initialize empty JSON
+
+            for env_file in "${env_files[@]}"; do
+              echo "Checking file existence: [ $env_file ]"
+              if [ -e $env_file ]; then
+                echo "Found file.."
+
+                while read line || [ -n "$line" ]; do
+
+                  # Extract key-value pair
+                  key=$(echo "$line" | cut -d '=' -f1)
+                  value=$(echo "$line" | cut -d '=' -f2-)
+
+                  mod_value=$(echo "$value" | sed 's/##ENVIRONMENT_CODE##/${{ inputs.environment_code }}/g')
+                  mod_value=$(echo "$mod_value" | sed 's/##ENVIRONMENT_INSTANCE##/${{ inputs.environment_instance }}/g')
+                  mod_value=$(echo "$mod_value" | sed 's/##DAB_NAME##/${{ inputs.dab_name }}/g')
+                  mod_value=$(echo "$mod_value" | sed 's/##DAB_SOURCE_PROJECT##/${{ inputs.dab_source_project }}/g')
+                  # echo "Writing [ $mod_value ] to GITHUB_ENV and GITHUB_OUTPUT"
+                  
+                  echo "Setting $key=$mod_value"
+
+                  # Export to GitHub Environment
+                  echo "$key=$mod_value" >> "$GITHUB_ENV"
+
+                  # Append to JSON object for outputs
+                  echo "$(jq -c --arg k "$key" --arg v "$mod_value" '. + {($k): $v}' "$output_file")" > "$output_file"
+            
+                done < $env_file
+              else
+                echo "File [ $env_file ] doesn't exist."
+              fi
+            done
+
+             # Store final JSON in GITHUB_OUTPUT
+            echo "EDP_ALL_VARS=$(cat "$output_file")" >> "$GITHUB_OUTPUT"

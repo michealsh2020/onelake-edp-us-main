@@ -1,0 +1,16 @@
+name: Install databricks cli & sql cli
+
+
+runs:
+  using: composite
+  steps:
+    # Download the Databricks CLI.
+    # See https://github.com/databricks/setup-cli
+    - name: Download the databricks CLI
+      uses: databricks/setup-cli@main
+
+    # - name: Download the databricks SQL CLI
+    #   shell: bash
+    #   run: |
+    #         python3 -m pip install databricks-sql-cli
+    #         pip show databricks-sql-cli

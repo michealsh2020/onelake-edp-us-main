@@ -1,0 +1,154 @@
+     
+# References:
+#  https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure
+#  https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux
+#  https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-create-trust-user-assigned-managed-identity?pivots=identity-wif-mi-methods-azp
+
+
+name: Azure Login with OpenID Connect (OIDC)
+
+inputs:
+  tenant_id:
+    description: Azure AAD tenant ID
+    require: true
+  subscription_id:
+    description: Azure subscription ID
+    require: true
+  client_id:
+    description: Azure client ID that has been federated to repo/env/branch/tag
+    require: true
+  enable_az_ps_session:
+    description: Enable Azure Powershell session
+    require: true
+
+runs:
+  using: composite
+  steps:
+  - name: Install PowerShell
+    shell: bash
+    run: |
+      ###################################
+      # Prerequisites
+      
+      # Update the list of packages
+      sudo apt-get update
+      
+      # Install pre-requisite packages.
+      sudo apt-get install -y wget apt-transport-https software-properties-common
+      
+      # Get the version of Ubuntu
+      source /etc/os-release
+      
+      # Download the Microsoft repository keys
+      sudo wget -q https://packages.microsoft.com/config/ubuntu/$VERSION_ID/packages-microsoft-prod.deb
+      
+      # Register the Microsoft repository keys
+      sudo dpkg -i packages-microsoft-prod.deb
+      
+      # Delete the the Microsoft repository keys file
+      rm packages-microsoft-prod.deb
+      
+      # Update the list of packages after we added packages.microsoft.com
+      sudo apt-get update
+      
+      ###################################
+      # Install PowerShell
+      sudo apt-get install -y powershell
+      
+      # Start PowerShell
+      pwsh
+
+  - name: Checking ssl 
+    shell: bash
+    run: |
+      openssl version -a
+      sudo apt-get upgrade -y
+      wget -O Az.zip "https://www.powershellgallery.com/api/v2/package/Az/11.0.0" --no-check-certificate
+      unzip Az.zip -d Az
+      mkdir -p ~/.local/share/powershell/Modules/Az
+      mv Az/* ~/.local/share/powershell/Modules/Az
+      wget -O Az.Accounts.nupkg "https://www.powershellgallery.com/api/v2/package/Az.Accounts/2.13.2" --no-check-certificate
+      mv Az.Accounts.nupkg Az.Accounts.zip
+      unzip Az.Accounts.zip -d Az.Accounts
+      mkdir -p ~/.local/share/powershell/Modules/Az.Accounts
+      mv Az.Accounts/* ~/.local/share/powershell/Modules/Az.Accounts
+      wget -O Az.Compute.nupkg "https://www.powershellgallery.com/api/v2/package/Az.Compute/7.0.0" --no-check-certificate
+      mv Az.Compute.nupkg Az.Compute.zip
+      unzip Az.Compute.zip -d Az.Compute
+      mkdir -p ~/.local/share/powershell/Modules/Az.Compute
+      mv Az.Compute/* ~/.local/share/powershell/Modules/Az.Compute
+      wget -O Az.Network.nupkg "https://www.powershellgallery.com/api/v2/package/Az.Network/7.0.0" --no-check-certificate
+      mv Az.Network.nupkg Az.Network.zip
+      unzip Az.Network.zip -d Az.Network
+      mkdir -p ~/.local/share/powershell/Modules/Az.Network
+      mv Az.Network/* ~/.local/share/powershell/Modules/Az.Network
+      wget -O SqlServer.nupkg "https://www.powershellgallery.com/api/v2/package/SqlServer/22.1.1" --no-check-certificate
+      mv SqlServer.nupkg SqlServer.zip
+      unzip SqlServer.zip -d SqlServer
+      mkdir -p ~/.local/share/powershell/Modules/SqlServer
+      mv SqlServer/* ~/.local/share/powershell/Modules/SqlServer
+      wget -O dbatools.library.2.0.4.nupkg "https://www.powershellgallery.com/api/v2/package/dbatools.library/2.0.4" --no-check-certificate
+      mv dbatools.library.2.0.4.nupkg dbatools.library.zip
+      unzip dbatools.library.zip -d dbatools.library
+      mkdir -p ~/.local/share/powershell/Modules/dbatools.library
+      mv dbatools.library/* ~/.local/share/powershell/Modules/dbatools.library
+      wget -O dbatools.2.0.4.nupkg "https://www.powershellgallery.com/api/v2/package/dbatools/2.0.4" --no-check-certificate
+      mv dbatools.2.0.4.nupkg dbatools.zip
+      unzip dbatools.zip -d dbatools
+      mkdir -p ~/.local/share/powershell/Modules/dbatools
+      mv dbatools/* ~/.local/share/powershell/Modules/dbatools
+      
+  - name: Install Az Module and Azure CLI
+    shell: pwsh
+    run: |
+      Get-Module -ListAvailable Az
+      Get-Module -ListAvailable Az.Accounts
+      Get-Module -ListAvailable Az.Compute
+      Get-Module -ListAvailable Az.Network
+      Get-Module -ListAvailable SqlServer
+      Get-Module -ListAvailable dbatools.library
+      Get-Module -ListAvailable dbatools
+      Import-Module Az.Accounts
+      Import-Module Az.Compute
+      Import-Module Az.Network
+      Import-Module SqlServer
+
+      # Install-Module -Name Az -RequiredVersion 10.4.1 -Repository PSGallery -Force -AllowClobber -Scope CurrentUser -Verbose
+    
+  - name: Installing CLI for OpenID Connect
+    shell: bash
+    run: |  
+      cd ../..
+      CWD="$(pwd)"
+      echo "Started installing az cli"
+      curl -skL https://aka.ms/InstallAzureCLIDeb | sudo bash
+      echo "$CWD" >> $GITHUB_PATH
+      echo "Az CLI installing completed.."
+  
+  - uses: azure/login@v1
+    name: Log in using OIDC
+    with:
+      tenant-id: ${{ inputs.tenant_id }}
+      client-id: ${{ inputs.client_id }}
+      subscription-id: ${{ inputs.subscription_id }}
+      enable-AzPSSession: ${{ inputs.enable_az_ps_session }}
+
+  # Run Az CLI script to confirm login and access
+  # - name: Run Azure PowerShell
+  #     uses: azure/powershell@v1
+  #     with:
+  #       azPSVersion: "latest"
+  #       inlineScript: |
+  #         Get-AzContext
+
+  - name: 'Run Azure PS commands to validate login'
+    if: ${{ inputs.enable_az_ps_session == 'true' }}
+    shell: pwsh
+    run: |
+        Get-AzSubscription
+  
+  - name: 'Run az commands to validate login'
+    if: ${{ inputs.enable_az_ps_session == 'false' }}
+    shell: pwsh
+    run: |
+        az account list

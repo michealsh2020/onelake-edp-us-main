@@ -1,0 +1,58 @@
+name: Sync Workflows
+
+on:
+  workflow_dispatch:
+    inputs:
+      sync:
+        description: "Sync Repositories"
+        required: false
+        type: boolean
+      sync_repo:
+        description: "Destination Repository"
+        required: true
+        type: choice
+        options: ["none", "onelake-edp-us", "onelake-edp-eu"]
+      github_pat:
+        description: "GitHub Personal Access Token"
+        required: true
+        type: string
+
+jobs:
+  sync:
+    name: Sync Workflows
+    if: ${{ inputs.sync }}
+    runs-on:
+      group: linux-x64
+
+    steps:
+      - name: Check if Origin and Destination Repositories are the same
+        run: |
+          if [ "${{ github.repository_owner }}/${{ inputs.sync_repo }}" == "${{ github.repository }}"  ]; then
+            echo "Error: Origin and Destination Repositories are the same."
+            exit 1
+          else
+            echo "Syncing repository [ ${{ github.repository }} ] -> [ ${{ github.repository_owner }}/${{ inputs.sync_repo }} ]"
+          fi
+
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+    
+      - name: Checkout the destination repository
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.repository_owner }}/${{ inputs.sync_repo }}
+          token: ${{ inputs.github_pat }}
+          path: ${{github.workspace}}/${{ inputs.sync_repo }}
+
+      - name: Copy .github folder to destination repository
+        run: |
+          cp -r ${{github.workspace}}/.github ${{github.workspace}}/${{ inputs.sync_repo }}/
+
+      - name: Commit and push changes to Repo2
+        run: |
+          cd ${{github.workspace}}/${{ inputs.sync_repo }}
+          git config --global user.email "bot@skillsoft.com"
+          git config --global user.name "GitHub Action"
+          git add .github
+          git commit -m "Sync .github folder from ${{ github.repository }}"
+          git push origin main

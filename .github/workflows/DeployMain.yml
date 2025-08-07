@@ -1,0 +1,119 @@
+name: Deploy Main
+run-name: Deploy on ${{ inputs.environment }} - ${{ github.run_number }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_storage:
+        description: "1. Deploy Storage"
+        required: false
+        type: boolean
+      deploy_databricks:
+        description: "2. Deploy Databricks"
+        required: false
+        type: boolean
+      dab_name:
+        description: "2.1. Databricks Asset Bundle Name (DAB)"
+        required: false
+        type: choice
+        options: ["none", "edp_dab", "onelake_dab"]
+      dab_source_project:
+        description: "2.2. Source Project for DAB"
+        required: false
+        type: choice
+        options: ["none", "gk", "mdm", "tds"]
+      dab_common:
+        description: "2.3 Deploy Common DAB"
+        required: false
+        type: boolean
+      deploy_catalog:
+        description: "2.4 Deploy Unity Catalog (Req. 2.1, 2.2)"
+        required: false
+        type: boolean
+      environment:
+        description: "3. Target Environment"
+        required: true
+        type: environment
+
+  push:
+    branches:
+      - ignoremain
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  TARGET_ENVIRONMENT: ${{ vars.ENVIRONMENT_CODE }}-${{ vars.ENVIRONMENT_INSTANCE }}
+  PROJECT_CONFIG_DIRECTORY: ${{ github.workspace }}/.github/artifacts/cicd/config
+
+jobs:
+
+  pre_deploy:
+    name: "Initialize variables"
+    runs-on:
+      group: linux-x64
+
+    environment: "${{ inputs.environment }}"
+
+    outputs:
+      EDP_ALL_VARS: ${{ steps.env_vars.outputs.EDP_ALL_VARS }}  # Expose as job output
+
+    steps:
+      # Check out this repo, so that this workflow can access it.
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Output all inputs
+      - name: Display pipeline inputs
+        run: echo "${{ toJSON(github.event.inputs) }}"
+
+        # This imports variables from file and exports to GITHUB_OUTPUT
+      - name: Import common environment variables from file
+        id: env_vars
+        uses: ./.github/workflows/composite/import-env
+        with:
+          var_common_file_path: "${{ env.PROJECT_CONFIG_DIRECTORY }}/common.env"
+          var_env_file_path: "${{ env.PROJECT_CONFIG_DIRECTORY }}/${{ env.TARGET_ENVIRONMENT }}/settings.env"
+          dab_name: ${{ inputs.dab_name }}
+          dab_source_project: ${{ inputs.dab_source_project }}
+          environment_code: ${{ vars.ENVIRONMENT_CODE }}
+          environment_instance: ${{ vars.ENVIRONMENT_INSTANCE }}
+
+  deploy_databricks:
+    needs: [pre_deploy]
+    name: Deploy Databricks
+    if: ${{ inputs.deploy_databricks }}
+    uses: ./.github/workflows/DeployDatabricks.yml
+    with:
+      dab_name: ${{ inputs.dab_name }}
+      dab_source_project: ${{ inputs.dab_source_project}}
+      dab_common: ${{ inputs.dab_common}}
+      deploy_catalog: ${{ inputs.deploy_catalog}}
+      dab_working_directory: ${{ fromJSON(needs.pre_deploy.outputs.EDP_ALL_VARS).EDP_DAB_WORKING_DIRECTORY }}
+      workspace_src_directory: ${{ fromJSON(needs.pre_deploy.outputs.EDP_ALL_VARS).EDP_WORKSPACE_SRC_DIRECTORY }}
+      databricks_storage_credential_name: ${{ fromJSON(needs.pre_deploy.outputs.EDP_ALL_VARS).EDP_DATABRICKS_STORAGE_CREDENTIAL_NAME }}
+      storage_account_name: ${{ fromJSON(needs.pre_deploy.outputs.EDP_ALL_VARS).EDP_STORAGE_ACCOUNT_NAME }}
+      common_dab_name: ${{ fromJSON(needs.pre_deploy.outputs.EDP_ALL_VARS).EDP_COMMON_DAB_NAME }}
+      common_dab_working_directory: ${{ fromJSON(needs.pre_deploy.outputs.EDP_ALL_VARS).EDP_COMMON_DAB_WORKING_DIRECTORY }}
+      common_library_repo_name: ${{ fromJSON(needs.pre_deploy.outputs.EDP_ALL_VARS).EDP_COMMON_LIBRARY_REPO_NAME }}
+      environment: ${{ inputs.environment }}
+    secrets: inherit
+      # databricks_client_id: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      # databricks_client_secret: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+
+  deploy_storage:
+    needs: [pre_deploy]
+    name: Deploy Storage
+    if: ${{ inputs.deploy_storage }}
+    uses: ./.github/workflows/DeployStorage.yml
+    with:
+      resource_group_name: ${{ fromJSON(needs.pre_deploy.outputs.EDP_ALL_VARS).EDP_STORAGE_ACCOUNT_RESOURCE_GROUP_NAME }}
+      storage_account_name: ${{ fromJSON(needs.pre_deploy.outputs.EDP_ALL_VARS).EDP_STORAGE_ACCOUNT_NAME }}
+      storage_content_file_path: ${{ fromJSON(needs.pre_deploy.outputs.EDP_ALL_VARS).EDP_STORAGE_CONTENT_FILE_PATH }}
+      environment: ${{ inputs.environment }}
+    secrets:
+      client_id: ${{ secrets.AZURE_CLIENT_ID }}
+      tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+      subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
