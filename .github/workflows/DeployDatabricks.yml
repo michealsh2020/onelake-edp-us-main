@@ -1,0 +1,305 @@
+# This workflow validates, deploys, and runs the specified bundle
+# within a pre-production target named "qa".
+name: "Deploy Databricks"
+run-name: Deploy Databricks
+
+on:
+  workflow_call:
+    inputs:
+      dab_name:
+        description: "Databricks Asset Bundle Name (DAB)"
+        required: true
+        default:
+        type: string
+      dab_source_project:
+        description: "Source Project for DAB"
+        required: true
+        default:
+        type: string
+      dab_common:
+        description: "Deploy Common DAB"
+        required: false
+        type: boolean
+      deploy_catalog:
+        description: "Deploy Unity Catalog (Requires DAB)"
+        required: false
+        type: boolean
+      dab_working_directory:
+        description: "DAB Working Directory"
+        required: false
+        type: string
+      workspace_src_directory:
+        description: "Workspace Source Directory"
+        required: false
+        type: string
+      databricks_storage_credential_name:
+        description: "DataBricks Storage Credential Name"
+        required: false
+        type: string
+      storage_account_name:
+        description: "Storage Account Name"
+        required: false
+        type: string
+      common_dab_name:
+        description: "Common DAB Name"
+        required: false
+        type: string
+      common_dab_working_directory:
+        description: "Common DAB Working Directory"
+        required: false
+        type: string
+      common_library_repo_name:
+        description: "Common DAB Working Directory"
+        required: false
+        type: string
+
+
+      environment:
+        description: "Environment"
+        required: true
+        type: string
+
+  push:
+    branches:
+      - ignoremain
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  TARGET_ENVIRONMENT: ${{ vars.ENVIRONMENT_CODE }}-${{ vars.ENVIRONMENT_INSTANCE }}
+  DATABRICKS_BUNDLE_ENV: ${{ vars.ENVIRONMENT_CODE }}
+
+  DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+
+  # Service Principal "GitHub Enterprise Cloud -Skillsoft Data" OAuth Client Id and Client Secret
+  DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+  DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+
+  # BUNDLE_VAR prefix is needed for variables in databircks.yml to refer environment variable
+  # https://learn.microsoft.com/en-us/azure/databricks/dev-tools/bundles/settings#set-a-variables-value
+  BUNDLE_VAR_service_principal_name: ${{ secrets.AZURE_CLIENT_ID }}
+
+# Ensure that only a single job or workflow using the same concurrency group
+# runs at a time.
+concurrency: 1
+
+# Trigger this workflow whenever a pull request is opened against the repo's
+# main branch or an existing pull request's head branch is updated.
+# on:
+#   pull_request:
+#     types:
+#       - opened
+#       - synchronize
+#     branches:
+#       - main
+
+jobs:
+  # Used by the "pipeline_update" job to deploy the bundle.
+  # Bundle validation is automatically performed as part of this deployment.
+  # If validation fails, this workflow fails.
+
+  deploy_dab:
+    # needs: [pre_deploy]
+    name: "Deploy DAB"
+    if: ${{ inputs.dab_name != 'none' && inputs.dab_source_project != 'none' }}
+    runs-on:
+      group: linux-x64
+
+    environment: "${{ inputs.environment }}"
+
+    steps:
+      # Check out this repo, so that this workflow can access it.
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # - name: Test Output
+      #   run: |
+      #         # find . -type f
+      #         echo ${{ secrets.AZURE_CLIENT_ID }} | sed 's/./& /g'
+
+      # Output all inputs
+      - name: Display workflow inputs
+        run: echo "${{ toJSON(inputs) }}"
+
+      # Download the databricks CLI
+      - name: Download the databricks CLI
+        uses: ./.github/workflows/composite/databricks-install
+
+      # List the databricks repos within the workspace whose credentials
+      # are stored in the Github Environment "my-environment"
+      - name: List Databricks Repos
+        run: |
+          databricks repos list
+
+      # Deploy the bundle to the "qa" target as defined
+      # in the bundle's settings file.
+      - name: Bundle Validate
+        run: databricks bundle validate
+        working-directory: ${{ inputs.dab_working_directory }}
+
+      # region Pre-Bundle Cleanup
+      # Destroying a bundle permanently deletes a bundle’s previously-deployed jobs, pipelines, and artifacts. This action cannot be undone.
+      # Commenting as we do not want to delete the jobs, pipelines, and artifacts
+      # - name: Destroy Old Bundles
+      #   run: |
+
+      #     # Hack to allow "databricks bundle destroy" command to execute successfully on empty workspaces. No issue if bundle was previously deployed.
+      #     tf_dir=.databricks/bundle/${{ env.TARGET_ENVIRONMENT }}/terraform
+      #     tf_file=$tf_dir/terraform.tfstate
+      #     # tf_file='/Workspace/edp/.bundle/prod/edp_dab/files'
+      #     if [ -f "$tf_file" ]; then
+      #       databricks bundle destroy --auto-approve
+      #     else
+      #       echo "Will not execute 'databricks bundle destroy' as there is nothing to cleanup"
+      #     fi
+
+      #   working-directory: ${{ inputs.dab_working_directory }}
+      # endregion Pre-Bundle Cleanup
+
+      # Create storage credential
+      - name: Create Storage Credentials
+        run: |
+
+          stg_cred=$(databricks storage-credentials list --output json | jq -r '.[] | select(.name=="${{ inputs.databricks_storage_credential_name }}") | .name')
+
+          if [ ! -z "${stg_cred}" ]; then
+            echo "Databricks storage credential [ ${{ inputs.databricks_storage_credential_name }} ] already exists. Will not create a new credential."
+          else
+            echo "Creating new databricks storage credential [ ${{ inputs.databricks_storage_credential_name }} ].."
+            databricks storage-credentials create --json '{"name": "${{ inputs.databricks_storage_credential_name }}", "azure_managed_identity": {"access_connector_id": "${{ vars.DATABRICKS_ACCESS_CONNECTOR_ID }}"}}'
+          fi
+
+      # Deploy the bundle to the target as defined
+      # in the bundle's settings file.
+      - name: Bundle Deploy
+        run: databricks bundle deploy
+        working-directory: ${{ inputs.dab_working_directory }}
+
+  deploy_common_dab:
+    # needs: [pre_deploy]
+    name: "Deploy Common DAB"
+    if: ${{ inputs.dab_common}}
+    runs-on:
+      group: linux-x64
+
+    environment: "${{ inputs.environment }}"
+
+    steps:
+      # Check out this repo, so that this workflow can access it.
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Checkout [ ${{ inputs.common_library_repo_name }} ] Repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/${{ inputs.common_library_repo_name }}    # repository: skillsoft-data/onelake-edp-common-library
+          ref: main
+          path: ${{ inputs.common_dab_working_directory }}         # Relative path under $GITHUB_WORKSPACE to place the repository
+          ssh-key: ${{ secrets.GIT_ONELAKE_EDB_COMMON_REPO_PRIVATE_KEY }}
+
+      # - name: Test Output
+      #   run: |
+      #         # find . -type f
+      #         echo ${{ secrets.AZURE_CLIENT_ID }} | sed 's/./& /g'
+
+      # Output all inputs
+      - name: Display workflow inputs
+        run: echo "${{ toJSON(inputs) }}"
+
+      # Download the databricks CLI
+      - name: Download the databricks CLI
+        uses: ./.github/workflows/composite/databricks-install
+
+      # List the databricks repos within the workspace whose credentials
+      # are stored in the Github Environment "my-environment"
+      - name: List Databricks Repos
+        run: |
+          databricks repos list
+
+
+      # Deploy the bundle to the "qa" target as defined
+      # in the bundle's settings file.
+      - name: Bundle Validate
+        run: |
+          cd ${{ inputs.common_dab_working_directory }}
+          databricks bundle validate
+        working-directory: ${{ github.workspace }}/${{ inputs.common_dab_working_directory }}
+
+
+      # Deploy the bundle to the target as defined
+      # in the bundle's settings file.
+      - name: Bundle Deploy
+        run: |
+          cd ${{ inputs.common_dab_working_directory }}
+          databricks bundle deploy
+        working-directory: ${{ github.workspace }}/${{ inputs.common_dab_working_directory }}
+
+  deploy_catalog:
+    needs: [deploy_dab]
+    if: ${{ inputs.dab_name != 'none' && inputs.dab_source_project != 'none' && inputs.deploy_catalog }}
+    name: "Deploy Unity Catalog"
+    runs-on:
+      group: linux-x64
+
+    environment: "${{ inputs.environment }}"
+
+    env:
+      #   DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      #   # Service Principal "GitHub Enterprise Cloud -Skillsoft Data" OAuth Client Id and Client Secret
+      #   DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      #   DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      #   DATABRICKS_BUNDLE_ENV: ${{ inputs.environment }}
+      UNITY_CATALOG_NAME: ${{ vars.ENVIRONMENT_CODE }}
+
+    steps:
+      # Check out this repo, so that this workflow can access it.
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download the databricks CLI
+        uses: ./.github/workflows/composite/databricks-install
+
+      - name: Generate Databricks OAuth Token
+        run: |
+
+          export CLIENT_ID=${{ secrets.DATABRICKS_CLIENT_ID }}
+          export CLIENT_SECRET=${{ secrets.DATABRICKS_CLIENT_SECRET }}
+          export TOKEN_ENDPOINT_URL=${{ vars.DATABRICKS_HOST }}/oidc/v1/token
+
+          access_token=$(curl --request POST \
+                              --url $TOKEN_ENDPOINT_URL \
+                              --user "$CLIENT_ID:$CLIENT_SECRET" \
+                              --data 'grant_type=client_credentials&scope=all-apis' | jq -r .access_token)
+          echo "DATABRICKS_TOKEN=$access_token" >> "$GITHUB_ENV"
+
+      - name: Trigger Notebook to Deploy Unity Catalog
+        uses: databricks/run-notebook@v0
+        with:
+          run-name: Deploy Unity Catalog - ${{ env.UNITY_CATALOG_NAME }}
+          local-notebook-path: ./${{ inputs.dab_name }}/src/${{ inputs.dab_source_project }}/scripts/create_catalog_objects.py
+          notebook-params-json: '[{"key": "catalog", "value": "${{ env.UNITY_CATALOG_NAME }}"}, {"key": "storage_credential_name", "value": "${{ inputs.databricks_storage_credential_name }}"}, {"key": "storage_account", "value": "${{ inputs.storage_account_name }}"}, {"key": "workspace_src_directory", "value": "${{ inputs.workspace_src_directory }}"}, {"key": "project_directory", "value": "${{ inputs.dab_source_project }}"}]'
+
+          # Alternatively, specify an existing-cluster-id to run against an existing cluster.
+          # The cluster JSON below is for Azure Databricks. On AWS and GCP, set
+          # node_type_id to an appropriate node type, e.g. "i3.xlarge" for
+          # AWS or "n1-highmem-4" for GCP
+
+          # existing-cluster-id: adb-shared-cluster
+          new-cluster-json: >
+            {
+              "num_workers": 1,
+              "spark_version": "13.3.x-scala2.12",
+              "node_type_id": "Standard_D3_v2",
+              "access_mode": "SHARED"
+            }
+          # Grant all users view permission on the notebook results, so that they can
+          # see the result of our CI notebook
+          access-control-list-json: >
+            [
+              {
+                "service_principal_name": "${{ secrets.AZURE_CLIENT_ID }}",
+                "permission_level": "IS_OWNER"
+              }
+            ]
