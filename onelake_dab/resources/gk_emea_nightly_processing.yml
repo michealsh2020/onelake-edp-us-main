@@ -1,0 +1,50 @@
+resources:
+  jobs:
+    gk_emea_nightly_processing:
+      name: gk_emea_nightly_processing
+      schedule:
+        quartz_cron_expression: 53 30 4 * * ?
+        timezone_id: UTC
+        pause_status: UNPAUSED
+      job_clusters:
+        - job_cluster_key: adb-shared-cluster
+          new_cluster:
+            spark_version: 13.3.x-scala2.12
+            node_type_id: Standard_DS4_v2
+            driver_node_type_id: Standard_DS4_v2
+            autoscale:
+              min_workers: 2
+              max_workers: 4
+      tasks:
+        - task_key: gk_emea_silver
+          job_cluster_key: adb-shared-cluster
+          notebook_task:
+            base_parameters:
+              catalog: ${bundle.target}
+              metadata_database_json_secret : ${bundle.target}-sqlserver-metadata-conn-json
+              processing_group_name : "GK EMEA Quickwin Data Refresh"
+            notebook_path:  /edp/.bundle/${bundle.target}/${bundle.name}/files/src/gk-quickwin/gk-emea/silver/notebooks/gk_emea_silver_processing
+            source: WORKSPACE
+          run_if: ALL_SUCCESS
+        - task_key: gk_emea_gold
+          depends_on:
+            - task_key: gk_emea_silver
+          job_cluster_key: adb-shared-cluster
+          run_if: ALL_SUCCESS
+          notebook_task:
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${bundle.target}
+              metadata_database_json_secret : ${bundle.target}-sqlserver-metadata-conn-json
+              processing_group_name : "GK EMEA Quickwin Data Refresh"
+            notebook_path: /edp/.bundle/${bundle.target}/${bundle.name}/files/src/gk-quickwin/gk-emea/gold/notebooks/gk_emea_gold_processing
+      max_concurrent_runs: 1
+      parameters:
+        - name: catalog
+          default: ${bundle.target}
+        - name: metadata_database_json_secret
+          default: ${bundle.target}-sqlserver-metadata-conn-json
+        - name: processing_group_name
+          default: "GK EMEA Quickwin Data Refresh"
+        - name: source_system
+          default: "GK EMEA Datawarehouse"

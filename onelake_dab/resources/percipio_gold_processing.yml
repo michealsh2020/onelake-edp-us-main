@@ -1,0 +1,43 @@
+resources:
+  jobs:
+    percipio_gold_processing:
+      name: percipio_gold_processing
+      job_clusters:
+        - job_cluster_key: adb-shared-cluster
+          new_cluster:
+            spark_version: 14.3.x-scala2.12
+            node_type_id: Standard_D8s_v3
+            driver_node_type_id: Standard_D8s_v3
+            autoscale:
+              min_workers: 2
+              max_workers: 4
+      tasks:
+        - task_key: Gold_Base_Processing
+          job_cluster_key: adb-shared-cluster
+          run_if: ALL_SUCCESS
+          notebook_task:
+            notebook_path: /edp/.bundle/${bundle.target}/${bundle.name}/files/src/usage/gold/notebooks/base/usage_gold_base_processing
+            base_parameters:
+              processing_group_name: Usage-Data-Processing
+              metadata_database_json_secret: ${bundle.target}-sqlserver-metadata-conn-json
+              catalog: ${bundle.target}
+              storage_account: ${var.storage_account}
+            source: WORKSPACE
+          max_retries: 1
+          min_retry_interval_millis: 900000
+          retry_on_timeout: true
+        - task_key: Gold_Aggr_Processing
+          depends_on:
+            - task_key: Gold_Base_Processing
+          job_cluster_key: adb-shared-cluster
+          run_if: ALL_SUCCESS
+          notebook_task:
+            notebook_path: /edp/.bundle/${bundle.target}/${bundle.name}/files/src/usage/gold/notebooks/aggregate/usage_gold_aggregate_processing
+            base_parameters:
+              processing_group_name: Usage-Data-Processing
+              metadata_database_json_secret: ${bundle.target}-sqlserver-metadata-conn-json
+              catalog: ${bundle.target}
+              storage_account: ${var.storage_account}
+            source: WORKSPACE
+      queue:
+        enabled: true

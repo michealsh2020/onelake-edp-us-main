@@ -1,0 +1,52 @@
+resources:
+  jobs:
+    gk_na_nightly_processing:
+      name: gk_na_nightly_processing
+      schedule:
+        quartz_cron_expression: 51 30 11 * * ?
+        timezone_id: UTC
+        pause_status: UNPAUSED
+      job_clusters:
+        - job_cluster_key: adb-shared-cluster
+          new_cluster:
+            spark_version: 13.3.x-scala2.12
+            node_type_id: Standard_DS4_v2
+            driver_node_type_id: Standard_DS4_v2
+            autoscale:
+              min_workers: 2
+              max_workers: 4
+      tasks:
+        - task_key: gk_na_silver
+          job_cluster_key: adb-shared-cluster
+          notebook_task:
+            base_parameters:
+              catalog: ${bundle.target}
+              metadata_database_json_secret : ${bundle.target}-sqlserver-metadata-conn-json
+              processing_group_name : "GK NA Quickwin Data Refresh"
+              source_system: "GK NA Datawarehouse"
+            notebook_path:  /edp/.bundle/${bundle.target}/${bundle.name}/files/src/gk-quickwin/gk-na/silver/notebooks/gk_na_silver_processing
+            source: WORKSPACE
+          run_if: ALL_SUCCESS
+        - task_key: gk_na_gold
+          depends_on:
+            - task_key: gk_na_silver
+          job_cluster_key: adb-shared-cluster
+          run_if: ALL_SUCCESS
+          notebook_task:
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${bundle.target}
+              metadata_database_json_secret : ${bundle.target}-sqlserver-metadata-conn-json
+              processing_group_name : "GK NA Quickwin Data Refresh"
+              source_system: "GK NA Datawarehouse"
+            notebook_path: /edp/.bundle/${bundle.target}/${bundle.name}/files/src/gk-quickwin/gk-na/gold/notebooks/gk_na_gold_processing
+      max_concurrent_runs: 1
+      parameters:
+        - name: catalog
+          default: ${bundle.target}
+        - name: metadata_database_json_secret
+          default: ${bundle.target}-sqlserver-metadata-conn-json
+        - name: processing_group_name
+          default: "GK NA Quickwin Data Refresh"
+        - name: source_system
+          default: "GK NA Datawarehouse"

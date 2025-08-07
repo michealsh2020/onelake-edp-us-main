@@ -1,0 +1,31 @@
+resources:
+  jobs:
+    lead_score_model_processing:
+      name: lead_score_model_processing
+      job_clusters:
+        - job_cluster_key: adb-ml-cluster
+          new_cluster:
+            spark_version: 13.3.x-gpu-ml-scala2.12
+            node_type_id: Standard_NC4as_T4_v3
+            driver_node_type_id: Standard_NC4as_T4_v3
+            autoscale:
+              min_workers: 1
+              max_workers: 3
+            libraries: [{"pypi":{"package":"configparser==5.2.0"}},{"pypi":{"package":"databricks-feature-engineering==0.1.2"}},{"pypi":{"package":"databricks-sdk==0.1.6"}},{"pypi":{"package":"google-cloud-storage==2.10.0"}},{"pypi":{"package":"grpcio-status==1.48.1"}},{"pypi":{"package":"mlflow xgboost"}},{"pypi":{"package":"mlflow==2.5.0"}},{"pypi":{"package":"pyarrow==8.0.0"}},{"pypi":{"package":"pyspark==3.4.1"}}]
+      tasks:
+        - task_key: lead_score_model_processing
+          job_cluster_key: adb-ml-cluster
+          notebook_task:
+            notebook_path: /edp/.bundle/${bundle.target}/${bundle.name}/files/src/lead-scoring-model/gold/notebooks/aggregate/lead_score_model_processing
+            source: WORKSPACE
+      queue:
+        enabled: true
+      parameters:
+        - name: catalog
+          default: ${bundle.target}
+        - name: metadata_database_json_secret
+          default: ${bundle.target}-sqlserver-metadata-conn-json
+        - name: processing_group_name
+          default: "Lead Score Model Processing"
+        - name: salesforce_json_secret
+          default: ${bundle.target}-salesforce-conn-json

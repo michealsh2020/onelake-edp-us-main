@@ -1,0 +1,44 @@
+resources:
+  jobs:
+    lead_score_gold_processing:
+      name: lead_score_gold_processing
+      job_clusters:
+        - job_cluster_key: adb-shared-cluster
+          new_cluster:
+            spark_version: 13.3.x-scala2.12
+            node_type_id: Standard_DS4_v2
+            driver_node_type_id: Standard_DS4_v2
+            autoscale:
+              min_workers: 1
+              max_workers: 3
+      tasks:
+        - task_key: Gold_Base_Processing
+          job_cluster_key: adb-shared-cluster
+          notebook_task:
+            base_parameters:
+              catalog: ${bundle.target}
+              metadata_database_json_secret : ${bundle.target}-sqlserver-metadata-conn-json
+              processing_group_name : "Lead Score Processing"
+            notebook_path:  /edp/.bundle/${bundle.target}/${bundle.name}/files/src/lead-scoring-model/gold/notebooks/base/lead_score_gold_base_processing
+            source: WORKSPACE
+          run_if: ALL_SUCCESS
+        - task_key: Gold_Aggr_Processing
+          depends_on:
+            - task_key: Gold_Base_Processing
+          job_cluster_key: adb-shared-cluster
+          run_if: ALL_SUCCESS
+          notebook_task:
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${bundle.target}
+              metadata_database_json_secret : ${bundle.target}-sqlserver-metadata-conn-json
+              processing_group_name : "Lead Score Processing"
+            notebook_path: /edp/.bundle/${bundle.target}/${bundle.name}/files/src/lead-scoring-model/gold/notebooks/aggregate/lead_score_gold_aggregate_processing
+      max_concurrent_runs: 1
+      parameters:
+        - name: catalog
+          default: ${bundle.target}
+        - name: metadata_database_json_secret
+          default: ${bundle.target}-sqlserver-metadata-conn-json
+        - name: processing_group_name
+          default: "Lead Score Processing"

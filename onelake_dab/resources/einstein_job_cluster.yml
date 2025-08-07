@@ -1,0 +1,16 @@
+resources:
+  jobs:
+    Einstein_Job_Cluster:
+      name: Einstein_Job_Cluster
+      schedule:
+        quartz_cron_expression: 0 00 08 * * ?
+        timezone_id: America/New_York
+        pause_status: UNPAUSED
+      tasks:
+        - task_key: Einstein_Start_Cluster
+          notebook_task:
+            notebook_path: /edp/.bundle/${bundle.target}/${bundle.name}/files/src/scripts/Einstein_Cluster_Job     
+            source: WORKSPACE
+            warehouse_id: ${var.warehouse_id}
+      queue:
+        enabled: true
