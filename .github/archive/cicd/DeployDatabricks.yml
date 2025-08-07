@@ -1,0 +1,216 @@
+# This workflow validates, deploys, and runs the specified bundle
+# within a pre-production target named "qa".
+name: "Deploy Databricks"
+run-name: Deploy Databricks on ${{ inputs.environment }} - ${{ github.run_number }}
+
+on:
+    workflow_dispatch:
+      inputs:
+        environment:
+          description: 'Target: Environment'
+          required: true
+          type: choice
+          options: 
+          - qa
+    push:
+      branches:
+        - ignoremain
+  
+permissions:
+    id-token: write
+    contents: read
+
+# Ensure that only a single job or workflow using the same concurrency group
+# runs at a time.
+concurrency: 1
+
+# Trigger this workflow whenever a pull request is opened against the repo's
+# main branch or an existing pull request's head branch is updated.
+# on:
+#   pull_request:
+#     types:
+#       - opened
+#       - synchronize
+#     branches:
+#       - main
+
+jobs:
+  # Used by the "pipeline_update" job to deploy the bundle.
+  # Bundle validation is automatically performed as part of this deployment.
+  # If validation fails, this workflow fails. 
+  deploy_bundle:
+    name: "Deploy Bundle"
+    # if: ${{ inputs.environment == 'qa' }}
+    runs-on: 
+        group: linux-x64
+    
+    environment: "${{ inputs.environment }}"
+    
+    env:
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_BUNDLE_ENV: ${{ inputs.environment }}
+
+    steps:
+
+      # Check out this repo, so that this workflow can access it.
+      - name: Check out repository
+        uses: actions/checkout@v3
+      
+      # Output all inputs
+      - name: Output Inputs
+        run: echo "${{ toJSON(github.event.inputs) }}"
+      
+      # This imports variables from file and exports to GITHUB_ENV & GITHUB_OUTPUT
+      - name: Import environment variables from file
+        uses: ./.github/workflows/composite/import-env
+        with:
+          env_var_file_path: ${{ vars.COMMON_VARIABLES_FILE_PATH }}
+          environment: ${{ inputs.environment }}
+          env_var_token: '##ENVIRONMENT##'
+
+      - name: Download the databricks CLI
+        uses: ./.github/workflows/composite/databricks-install
+
+      # List the databricks repos within the workspace whose credentials
+      # are stored in the Github Environment "my-environment"
+      - name: List databricks repos
+        run: |
+          databricks repos list
+
+      # Deploy the bundle to the "qa" target as defined
+      # in the bundle's settings file.
+      - name: Bundle Validate
+        run: databricks bundle validate
+        working-directory: ${{ env.EDP_DAB_WORKING_DIRECTORY }}
+
+      # Pre-Bundle Cleanup
+      - name: Pre-Bundle Cleanup
+        run: databricks bundle destroy --auto-approve
+        working-directory: ${{ env.EDP_DAB_WORKING_DIRECTORY }}
+      
+      # Create storage credential
+      - name: Create Storage Credentials
+        run: |
+          
+          stg_cred=$(databricks storage-credentials list --output json | jq -r '.[] | select(.name=="${{ env.EDP_DATABRICKS_STORAGE_CREDENTIAL_NAME }}") | .name')
+
+          if [ ! -z "${stg_cred}" ]; then
+            echo "Databricks storage credential [ ${{ env.EDP_DATABRICKS_STORAGE_CREDENTIAL_NAME }} ] already exists. Will not create a new credential."
+          else
+            echo "Creating new databricks storage credential [ ${{ env.EDP_DATABRICKS_STORAGE_CREDENTIAL_NAME }} ].."
+            databricks storage-credentials create --json '{"name": "${{ env.EDP_DATABRICKS_STORAGE_CREDENTIAL_NAME }}", "azure_managed_identity": {"access_connector_id": "${{ vars.DATABRICKS_ACCESS_CONNECTOR_ID }}"}}'
+          fi
+
+      # Deploy the bundle to the "qa" target as defined
+      # in the bundle's settings file.
+      - name: Bundle Deploy
+        run: databricks bundle deploy
+        working-directory: ${{ env.EDP_DAB_WORKING_DIRECTORY }}
+
+  deploy_catalog:
+    
+    needs: [deploy_bundle]
+
+    name: "Deploy Unity Catalog"
+    # if: ${{ inputs.environment == 'qa' }}
+    runs-on: 
+        group: linux-x64
+    
+    environment: "${{ inputs.environment }}"
+    
+    env:
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_BUNDLE_ENV: ${{ inputs.environment }}
+
+    steps:
+
+      # Check out this repo, so that this workflow can access it.
+      - name: Check out repository
+        uses: actions/checkout@v3
+      
+      - name: Import environment variables from file
+        uses: ./.github/workflows/composite/import-env
+        with:
+          env_var_file_path: ${{ env.EDP_COMMON_VARIABLES_FILE_PATH }}
+          environment: ${{ inputs.environment }}
+          env_var_token: '##ENVIRONMENT##'
+      
+      # - name: Azure Login using OIDC      # Azure login required to add a temporary firewall rule
+      #   uses: ./.github/workflows/composite/az-oidc-login
+      #   with:
+      #     tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+      #     subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      #     client_id: ${{ secrets.AZURE_CLIENT_ID }}
+      #     enable_az_ps_session: true 
+      
+      # - name: Generate and save AAD Token
+      #   run: |
+      #     curl -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
+      #       https://login.microsoftonline.com/${{ secrets.AZURE_TENANT_ID }}/oauth2/v2.0/token \
+      #       -d 'client_id=${{ secrets.AZURE_CLIENT_ID }}' \
+      #       -d 'grant_type=authorization_code' \
+      #       -d 'response_type=id_token%20token' \
+      #       -d 'redirect_uri=http%3A%2F%2Flocalhost%2Fmyapp%2F' \
+      #       -d 'scope=openid' \
+      #       -d 'nonce=sksdwh'
+
+      #     echo "DATABRICKS_TOKEN=$(curl -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
+      #       https://login.microsoftonline.com/${{ secrets.AZURE_TENANT_ID }}/oauth2/v2.0/token \
+      #       -d 'client_id=${{ secrets.AZURE_CLIENT_ID }}' \
+      #       -d 'grant_type=client_credentials' \
+      #       -d 'response_type=id_token%20token' \
+      #       -d 'redirect_uri=http%3A%2F%2Flocalhost%2Fmyapp%2F' \
+      #       -d 'scope=openid' \
+      #       -d 'nonce=sksdwh' |  jq -r  '.access_token')" >> $GITHUB_ENV
+      
+      - name: Download the databricks CLI
+        uses: ./.github/workflows/composite/databricks-install
+      
+      - name: Trigger Notebook to Deploy Unity Catalog
+        uses: databricks/run-notebook@v0
+        with:
+          run-name: Deploy ${{ inputs.environment }} catalog
+          local-notebook-path: ./onelake_dab/src/scripts/create_catalog_objects.py
+          notebook-params-json: '[{"key": "catalog", "value": "${{ inputs.environment }}"}, {"key": "storage_account", "value": "${{ env.EDP_STORAGE_ACCOUNT_NAME }}"}, {"key": "workspace_src_directory", "value": "${{ env.EDP_WORKSPACE_SRC_DIRECTORY }}"}, {"key": "lsm_project_directory", "value": "${{ env.EDP_LSM_PROJECT_DIRECTORY }}"}]'
+
+          # Alternatively, specify an existing-cluster-id to run against an existing cluster.
+          # The cluster JSON below is for Azure Databricks. On AWS and GCP, set
+          # node_type_id to an appropriate node type, e.g. "i3.xlarge" for
+          # AWS or "n1-highmem-4" for GCP
+          
+          # existing-cluster-id: adb-shared-cluster
+          new-cluster-json: >
+            {
+              "num_workers": 1,
+              "spark_version": "13.3.x-scala2.12",
+              "node_type_id": "Standard_D3_v2"
+            }
+          # Grant all users view permission on the notebook results, so that they can
+          # see the result of our CI notebook 
+          # access-control-list-json: >
+          #   [
+          #     {
+          #       "group_name": "users",
+          #       "permission_level": "CAN_VIEW"
+          #     }
+          #   ]
+      
+      
+      # - name: Deploy databricks SQL
+      #   id: deploy-sql-files
+      #   run: |
+      #         output_file=output.csv
+      #         dbsqlcli -e 'select id, name from minifigs LIMIT 10'
+      #         # dbsqlcli -e query.sql > $output_file
+      #         echo "SQL_FILES_RESULTS=$output_file" >> $env:GITHUB_OUTPUT
+      
+      # - name: Upload SQL Files Execution Output
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: sql-files-execution-output-artifact
+      #     path: ${{ steps.deploy-sql-files.outputs.SQL_FILES_RESULTS }}
+      #     if-no-files-found: error 
+
+      

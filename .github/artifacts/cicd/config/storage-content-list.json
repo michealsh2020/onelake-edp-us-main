@@ -1,0 +1,13 @@
+[
+    {
+        "key": "lsm_60_day_rds",
+        "source":{
+            "subscription_name": "sub-it-dev",
+            "file_path": "https://sadwhdev02.blob.core.windows.net/onelake/gold/model_data/lead_score_model.rds"
+        },
+        "target":{
+            "subscription_name": "",
+            "file_path": "https://##TARGET_STORAGE_ACCOUNT_NAME##.blob.core.windows.net/onelake/gold/model_data/lead_score_model.rds"
+        }
+    }
+]
