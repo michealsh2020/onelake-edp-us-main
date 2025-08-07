@@ -1,0 +1,13 @@
+configured_system_variables_yaml:
+    - dev_send_grid_api:
+        url: https://api.sendgrid.com/v3/mail/send
+        access_key: dev-send-grid-access-key
+    - qa_send_grid_api:
+        url: https://api.sendgrid.com/v3/mail/send
+        access_key: qa-send-grid-access-key
+    - prod_send_grid_api:
+        url: https://api.sendgrid.com/v3/mail/send
+        access_key: prod-send-grid-access-key
+      
+      
+

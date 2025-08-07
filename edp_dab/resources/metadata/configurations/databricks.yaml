@@ -1,0 +1,2 @@
+configuration:
+  chunk_size: 40000

@@ -1,0 +1,983 @@
+dataset:
+  is_active: 1
+  source_system: salesforce
+  dataset_name: "Account"
+  dataset_description: Account-level data from Salesforce
+  dataset_type: salesforce api
+  dataset_load_type: "incremental"
+  watermark_id: 1
+  has_pii_columns: true
+  yaml_file_path: /edp/.bundle/${bundle.target}/${bundle.name}/files/resources/metadata/datasets/salesforce/account.yaml
+  sink: # defines the place the data will land. parameters vary based on the type of sink (managed table, external table...)
+    system: databricks
+    table_type: managed
+    catalog: mdm_${bundle.target}
+    schema: "landing"
+    table: "sf_account"
+  columns:
+    - name: "Id"
+      type: "StringType"
+      nullable: true
+      modified_field_name: "sid_id"
+      is_primary_key: 1
+      is_active: 1
+      is_pii: 0
+    - name: "Account_Id__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name:
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Account_Plans__c"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Account_Type__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Active_Prospecting_By__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Alignment_Score__c"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "AnnualRevenue"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Archived__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "BillingCity"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "BillingCountry"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "BillingPostalCode"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "BillingState"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "BillingStreet"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "BO_ID__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Company_Size__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Contact_and_Referral_Score__c"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "CreatedById"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "CreatedDate"
+      type: "TimestampType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "CurrencyIsoCode"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "DUNS_NUMBER__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Expires__c"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Fortune_500__c"
+      type: "BooleanType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Fortune_500_Y_or_N__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Global_2000__c"
+      type: "BooleanType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Global_2000_Y_N__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ILT__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Knowledge_Center_Editor__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Knowledge_Centers__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "LastActivityDate"
+      type: "TimestampType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "LastModifiedById"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "LastModifiedDate"
+      type: "TimestampType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "License_Management__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Lock_Account_Type__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "MasterRecordId"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Name"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "NumberOfEmployees"
+      type: "IntegerType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "of_Opportunities__c"
+      type: "IntegerType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "OLSA__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Opportunity_Stage__c"
+      type: "StringType" 
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Original_Pilot__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Original_Pilot_Yes_No__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Other_Partner__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "OwnerId"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Ownership"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ParentId"
+      type: "StringType" 
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Phone"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Population_Score__c"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Priority_Score__c"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Project_Defined__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "PSCRM_COMPANY_ID__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "RecordTypeId"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Renewal_Evaluation_Required2__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Revenue_Gen__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "RRFs__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "RRFs_Complete__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ShippingCity"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ShippingCountry"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ShippingPostalCode"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ShippingState"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ShippingStreet"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Sic"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Skillport__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "SLA__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Status__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "SystemModstamp"
+      type: "TimestampType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "TickerSymbol"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "TPLMS__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Type"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Website"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ss_NDA__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ss_Reference_Account__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Top_100__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Account_Industry_Account__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Band_calculated__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Geography__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Premier_Support_Customer__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Type_Platform__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Type_Toolbook__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Band__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "IsCustomerPortal"
+      type: "BooleanType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Sumt_DBA__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "SumTotal_Account_Id__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "SumTotal_Client__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "IsPartner"
+      type: "BooleanType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Support_Account__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Nbr_of_Account_Team_Members__c"
+      type: "IntegerType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "PS_SPIF_Ineligible__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Customer_Key__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Industry"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Won_Opportunities__c"
+      type: "IntegerType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "No_Opportunities_Closed__c"
+      type: "IntegerType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Named_Account__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Market_Segment_Value__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Market_Segment__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "DiscoverOrg_Employees__c"
+      type: "IntegerType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "DB_State_Province_Code__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "DB_Revenue_Value__c"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "DB_Major_Industry__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "DB_Employees_Here__c"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "DB_Duplicate__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "DB_Duns__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "DB_Country_Code__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "DB_Business_Name__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "CountOfOpportunitiesOpen__c"
+      type: "IntegerType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Count_of_SumTotal_CSMs__c"
+      type: "IntegerType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Count_of_SumTotal_CSDs__c"
+      type: "IntegerType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Conga_Output_Format__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    #- name: "DOZISF__ZoomInfo_Id__c"
+      #type: "StringType"
+      #nullable: true
+      #modified_field_name: 
+      #is_primary_key: 0
+      #is_active: 1
+      #is_pii: 0
+    - name: "Current_Deployment__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "G250__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Account_Segment__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Customer_Persona__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "IsDeleted"
+      type: "BooleanType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Billing_Address_Complete__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Billing_Address_Validation_Status__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Billing_Address_Validation_Status_Msg__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Billing_Country_2Char_Code__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Billing_County__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "BillingAddress"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "BillingGeocodeAccuracy"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "BillingGeolocation__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "BillingLatitude"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "BillingLongitude"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Fax"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Shipping_Address_Complete__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "GK_Account__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "GK_Account_Classification__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "GK_Salesforce_ID__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "GKNA_Created_By_User__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "GKNA_Created_By_User_ID__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Shipping_Address_Validation_Status_Msg__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ShippingGeolocation__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Shipping_Country_2Char_Code__c"
+      type: "BooleanType"
+      nullable: False
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ShippingLatitude"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ShippingLongitude"
+      type: "DoubleType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "ShippingGeocodeAccuracy"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "AccountNumber"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0
+    - name: "Shipping_County__c"
+      type: "StringType"
+      nullable: true
+      modified_field_name: 
+      is_primary_key: 0
+      is_active: 1
+      is_pii: 0

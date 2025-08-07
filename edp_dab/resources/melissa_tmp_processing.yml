@@ -1,0 +1,47 @@
+resources:
+  jobs:
+    melissa_tmp_processing:
+      name: melissa_tmp_processing
+      job_clusters:
+        - job_cluster_key: adb-shared-cluster
+          new_cluster:
+            spark_version: 13.3.x-scala2.12
+            node_type_id: Standard_DS3_v2
+            driver_node_type_id: Standard_DS3_v2
+            autoscale:
+              min_workers: 1
+              max_workers: 2
+      permissions:
+        - level: CAN_VIEW
+          group_name: users
+        - level: CAN_MANAGE_RUN
+          group_name: eda-de-admins
+      max_concurrent_runs: 5
+      tasks:
+        - task_key: load_melissa_shipping
+          job_cluster_key: adb-shared-cluster
+          notebook_task:
+            notebook_path: /Workspace/edp/.bundle/${bundle.target}/${bundle.name}/files/src/mdm/notebooks/melissa_shipping_address_processing
+            base_parameters:
+              catalog: mdm_${bundle.target}
+            source: WORKSPACE
+        - task_key: load_melissa_final
+          depends_on:
+            - task_key: load_melissa_shipping
+          job_cluster_key: adb-shared-cluster
+          notebook_task:
+            notebook_path: /Workspace/edp/.bundle/${bundle.target}/${bundle.name}/files/src/mdm/notebooks/melissa_final_address_processing
+            base_parameters:
+              catalog: mdm_${bundle.target}
+            source: WORKSPACE
+        - task_key: load_sf_account_validated_address
+          depends_on:
+            - task_key: load_melissa_final
+          job_cluster_key: adb-shared-cluster
+          notebook_task:
+            notebook_path: /Workspace/edp/.bundle/${bundle.target}/${bundle.name}/files/src/mdm/notebooks/final_salesforce_melissa_update
+            base_parameters:
+              catalog: mdm_${bundle.target}
+            source: WORKSPACE
+      queue:
+        enabled: true

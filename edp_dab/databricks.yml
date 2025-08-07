@@ -1,0 +1,125 @@
+# This is a Databricks asset bundle definition for onelake_dab.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+#     https://docs.databricks.com/en/dev-tools/bundles/settings.html
+bundle:
+  name: edp_dab
+
+include:
+  - resources/*.yml
+
+variables:
+  service_principal_name:
+    description: Service Principal Name to run the notebooks.
+    default: ''
+  storage_account:
+    description: Storage account name for the environment.
+    default: ''
+  warehouse_id:
+    description: Warehouse ID for Einstein Cluster job.
+    default: ''
+  resource_group:
+    description: Resource group name for the environment.
+    default: ''
+  
+         
+
+targets:
+  # The 'dev' target, for development purposes. This target is the default.
+  dev:
+    # We use 'mode: development' to indicate this is a personal development copy:
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default
+    # - The 'development' mode is used for Delta Live Tables pipelines. The development mode is turned off to deploy the pipline in shared mode.
+    # mode: development
+    default: true
+    variables:
+      warehouse_id: e0c0d7ae781e17a4
+      resource_group: rg-dwh-dev-02
+    workspace:
+      # host: ${workspace.host}
+      #host: ${var.workspace_host_qa}
+      root_path: /edp/.bundle/${bundle.target}/${bundle.name}
+    run_as:
+      # This runs as adminra@skillsoft.onmicrosoft.com in production. We could also use a service principal here,
+      # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
+      # user_name: adminra@skillsoft.onmicrosoft.com
+      service_principal_name: ${var.service_principal_name}
+      
+  ## Optionally, there could be a 'staging' target here.
+  ## (See Databricks docs on CI/CD at https://docs.databricks.com/dev-tools/bundles/ci-cd.html.)
+  
+  devpoc:
+    variables:
+      # storage_account: sadwhdevpoc01
+      # warehouse_id: 85166ac5be085b9e
+    workspace:
+      # host: ${workspace.host}
+      root_path: /edp/.bundle/${bundle.target}/${bundle.name}
+    run_as:
+      # This runs as adminra@skillsoft.onmicrosoft.com in production. We could also use a service principal here,
+      # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
+      # user_name: adminra@skillsoft.onmicrosoft.com
+      service_principal_name: ${var.service_principal_name}
+
+  qa:
+    variables:
+      storage_account: sadwhqa01
+      warehouse_id: 85166ac5be085b9e
+      resource_group: rg-dwh-qa-01
+    workspace:
+      # host: ${workspace.host}
+      root_path: /edp/.bundle/${bundle.target}/${bundle.name}
+    run_as:
+      # This runs as adminra@skillsoft.onmicrosoft.com in production. We could also use a service principal here,
+      # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
+      # user_name: adminra@skillsoft.onmicrosoft.com
+      service_principal_name: ${var.service_principal_name}
+
+  stg:
+    # We use 'mode: production' to indicate this is a production deployment.
+    # Doing so enables strict verification of the settings below.
+    mode: production
+    workspace:
+      # host: ${workspace.host}
+      root_path: /edp/.bundle/${bundle.target}/${bundle.name}
+    run_as:
+      # This runs as adminra@skillsoft.onmicrosoft.com in production. We could also use a service principal here,
+      # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
+      # user_name: adminra@skillsoft.onmicrosoft.com
+      service_principal_name: ${var.service_principal_name}
+
+  # The 'prod' target, used for production deployment.
+  prod:
+    # We use 'mode: production' to indicate this is a production deployment.
+    # Doing so enables strict verification of the settings below.
+    mode: production
+    variables:
+      storage_account: sadwhprod02
+      warehouse_id: 1c452ea4fb39959a
+      resource_group: rg-dwh-prod-01
+    workspace:
+      # host: ${workspace.host}
+      # We always use /Users/adminra@skillsoft.onmicrosoft.com for all resources to make sure we only have a single copy.
+      # If this path results in an error, please make sure you have a recent version of the CLI installed.
+      # root_path: /Users/adminra@skillsoft.onmicrosoft.com/.bundle/${bundle.target}/${bundle.name}
+      root_path: /edp/.bundle/${bundle.target}/${bundle.name}
+    run_as:
+      # This runs as adminra@skillsoft.onmicrosoft.com in production. We could also use a service principal here,
+      # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
+      # user_name: adminra@skillsoft.onmicrosoft.com
+      service_principal_name: ${var.service_principal_name}
+
+# This is the identity to use to run the bundle
+# run_as:
+#   # - user_name: <user-name>
+#   - service_principal_name: ${var.service_principal_name}
+
+# These are the permissions to apply to experiments, jobs, models, and pipelines defined
+# in the "resources" mapping.
+# permissions:
+#   # - level: <permission-level>
+#   #   group_name: <unique-group-name>
+#   # - level: <permission-level>
+#   #   user_name: <unique-user-name>
+#   - level: CAN_RUN
+#     service_principal_name: ${var.service_principal_name}

@@ -1,0 +1,193 @@
+processing_group_name: Account Data Refresh
+configured_emails:
+    - data_load_success:
+        name: success
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: Account data load completed
+        body: Account data refresh completed successfully.
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - data_load_failure:
+        name: failure
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: Account data load failed
+        body: Error Message Details
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - schema_validation_failure:
+        name: Account schema validation failure
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: Account Schema Validation Failed
+        body: Schema Validation failed for the following fields
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - clean_account_success:
+        name: clean success
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: Clean Account data load completed
+        body: Clean Account data refresh completed successfully.
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - clean_account_failure:
+        name: clean failure
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: Clean Account data load failed
+        body: Error Message Details
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - account_address_clean_success:
+        name: address clean success
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: Account address cleaning completed
+        body: Account address cleaning refresh completed successfully.
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - account_address_clean_failure:
+        name: address clean failure
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: Account address cleaning failed
+        body: Error Message Details
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - salesforce_address_update_success:
+        name: salesforce address update success
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: salesforce address update success
+        body: Validated address updated in salesforce completed successfully.
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - salesforce_address_update_failure:
+        name: salesforce address update failure
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: salesforce address update failure
+        body: Error Message Details
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - melissa_data_update_success:
+        name: melissa data update success
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: melissa data update success
+        body: Melissa data have been updated successfully
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - melissa_data_update_failure:
+        name: melissa data update failure
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: melissa data update failure
+        body: Error Message Details
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - melissa_billing_address_failure:
+        name: melissa billing address failure
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: melissa billing address failure
+        body: Error Message Details
+        send_email_flag: 1
+        attachment_required_flag: 0  
+    - melissa_shipping_address_failure:
+        name: melissa shipping address failure
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: melissa shipping address failure
+        body: Error Message Details
+        send_email_flag: 1
+        attachment_required_flag: 0   
+    - melissa_billing_invalid_results:
+        name: melissa billing invalid results
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: melissa billing invalid results
+        body: Received invalid records from melissa
+        send_email_flag: 1
+        attachment_required_flag: 0 
+    - melissa_shipping_invalid_results:
+        name: melissa shipping invalid results
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: melissa shipping invalid results
+        body: Received invalid records from melissa
+        send_email_flag: 1
+        attachment_required_flag: 0 
+    - needs_manual_review_success:
+        name: review success
+        description: 
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: 
+        body: 
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - needs_manual_review_failure:
+        name: review failure
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: Records Need Manual Review failure
+        body: Error Message Details
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - manual_review_merge_success:
+        name: merge success
+        description: 
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: 
+        body: 
+        send_email_flag: 1
+        attachment_required_flag: 0
+    - manual_review_merge_failure:
+        name: merge failure
+        description:
+        send_from: EDP.notifications@mail.skillsoft.com
+        send_to: divya.s@skillsoft.com;neelima.thangallapelly@skillsoft.com;harshita.mor@skillsoft.com;lindsay.sturm@skillsoft.com
+        prod_send_to: BusinessIntelligence@skillsoft.com
+        subject: Manual Review merge failure
+        body: Error Message Details
+        send_email_flag: 1
+        attachment_required_flag: 0
+

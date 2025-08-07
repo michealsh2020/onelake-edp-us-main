@@ -1,0 +1,41 @@
+system:
+  name: salesforce
+  description: Salesforce API Integration
+  type: API
+environments:
+  dev:
+    key_vault_url: 'https://kv-dwh-dev-02.vault.azure.net/'
+    storage_account: sadwhdev02
+    variables:
+      kv_token: prod-salesforce-db-token
+      kv_username: prod-salesforce-db-username
+      kv_url: prod-salesforce-url
+      kv_password: prod-salesforce-db-pwd
+      api_version: 52.0
+  qa:
+    key_vault_url: 'https://kv-dwh-qa-01.vault.azure.net/'
+    storage_account: sadwhqa01
+    variables:
+      kv_token: prod-salesforce-db-token
+      kv_username: prod-salesforce-db-username
+      kv_url: prod-salesforce-url
+      kv_password: prod-salesforce-db-pwd
+      api_version: 52.0
+  stg:
+    key_vault_url: 'https://kv-dwh-stg-01.vault.azure.net/'
+    storage_account: sadwhstg01
+    variables:
+      kv_token: prod-salesforce-db-token
+      kv_username: prod-salesforce-db-username
+      kv_url: prod-salesforce-url
+      kv_password: prod-salesforce-db-pwd
+      api_version: 52.0
+  prod:
+    key_vault_url: 'https://kv-dwh-prod-01.vault.azure.net/'
+    storage_account: sadwhprod01
+    variables:
+      kv_token: prod-salesforce-db-token
+      kv_username: prod-salesforce-db-username
+      kv_url: prod-salesforce-url
+      kv_password: prod-salesforce-db-pwd
+      api_version: 52.0
